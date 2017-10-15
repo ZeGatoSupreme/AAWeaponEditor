@@ -1,0 +1,50 @@
+<WeaponEditorSettings>
+  
+  <AttributesToEdit>
+
+    <Attribute name="BulletDrop" type="float">
+      <MinValue>-1</MinValue>
+      <MaxValue>10</MaxValue>
+      <Delta>0.01</Delta>
+      <KeyRaiseValue>104</KeyRaiseValue>
+      <KeyLowerValue>98</KeyLowerValue>
+    </Attribute>
+
+    <Attribute name="BulletSpeed" type="float">
+      <MinValue>-1</MinValue>
+      <MaxValue>7000</MaxValue>
+      <!-- How much to change it by, should be positive-->
+      <Delta>10</Delta>
+      <KeyRaiseValue>102</KeyRaiseValue>
+      <KeyLowerValue>100</KeyLowerValue>
+    </Attribute>
+
+    <Attribute name="PitchToAdd" type="float">
+      <MinValue>-1</MinValue>
+      <MaxValue>5</MaxValue>
+      <!-- How much to change it by, should be positive-->
+      <Delta>0.025</Delta>
+      <KeyRaiseValue>99</KeyRaiseValue>
+      <KeyLowerValue>97</KeyLowerValue>
+    </Attribute>
+
+    <Attribute name="YawToAdd" type="float">
+      <MinValue>-1</MinValue>
+      <MaxValue>5</MaxValue>
+      <!-- How much to change it by, should be positive-->
+      <Delta>0.025</Delta>
+      <KeyRaiseValue>106</KeyRaiseValue>
+      <KeyLowerValue>111</KeyLowerValue>
+    </Attribute>
+    
+  </AttributesToEdit>
+
+  <!-- Numpad 5 by default -->
+  <AAKeyBindKey key="101"/>
+
+  <NextWeaponKey key="105" />
+
+  <PrevWeaponKey key="103" />
+  
+  
+</WeaponEditorSettings>
