@@ -42,6 +42,56 @@ bool ConfigFileManager::writeOutWeaponConfigFile(const WeaponConfig & rWpnConfig
 	return true;
 }
 
+//back up newweaps in case there are changes in it that user wanted to save but forgot to copy out
+bool ConfigFileManager::backupExistingNewWeaps()
+{
+	if (newWeaponFilePath.empty())
+		return false;
+
+	ifstream oldNewWeapsIn(newWeaponFilePath);
+
+	if (oldNewWeapsIn.fail() || oldNewWeapsIn.bad() || oldNewWeapsIn.eof())
+	{
+		oldNewWeapsIn.close();
+		return false;
+	}
+
+	std::string bakNewWeaponsFilePath = newWeaponFilePath;
+
+	bakNewWeaponsFilePath.append(".bak");
+
+	// write it back out to the keybind cfg file
+	ofstream wpnConfigWriter(bakNewWeaponsFilePath, std::ofstream::out | std::ofstream::trunc);
+
+	if (wpnConfigWriter.fail() || wpnConfigWriter.bad())
+	{
+		oldNewWeapsIn.close();
+		wpnConfigWriter.close();
+		return false;
+	}
+
+	std::string xferLine = "";
+
+	bool didError = false;
+
+
+	while (!oldNewWeapsIn.eof() && getline(oldNewWeapsIn, xferLine))
+	{
+		wpnConfigWriter << xferLine << std::endl;
+		if (wpnConfigWriter.fail() || wpnConfigWriter.bad())
+		{
+			didError = true;
+			break;
+		}
+	}
+	
+	oldNewWeapsIn.close();
+	wpnConfigWriter.close();
+
+	return !didError;
+
+}
+
 void ConfigFileManager::initialize()
 {
 	//Used to store current directory

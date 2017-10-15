@@ -1,10 +1,7 @@
-#include "DefaultSettings.h"
+/* D:\Coding\WpnEdit\sauce\DefaultSettings.xml (10/15/2017 3:23:22 PM)
+   StartOffset: 00000000, EndOffset: 00001029, Length: 0000102A */
 
-
-//This is an array of bytes of the default Settings.xml file. If the Settings.xml file is corrupted or
-//deleted, or has invalid entries, it will be deleted and this will be streamed into a new copy of the default Settings.xml
-//As you can see, these are all ascii values, throw it in a hex editor if you want to verify.
-const unsigned char defaultSettingsBytes[4138] = {
+unsigned char rawData[4138] = {
 	0x3C, 0x21, 0x2D, 0x2D, 0x20, 0x52, 0x6F, 0x6F, 0x74, 0x20, 0x73, 0x65,
 	0x74, 0x74, 0x69, 0x6E, 0x67, 0x73, 0x20, 0x6F, 0x70, 0x65, 0x6E, 0x69,
 	0x6E, 0x67, 0x20, 0x74, 0x61, 0x67, 0x20, 0x2D, 0x2D, 0x3E, 0x0D, 0x0A,

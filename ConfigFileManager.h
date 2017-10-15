@@ -35,6 +35,8 @@ public:
 
 	bool writeOutWeaponConfigFile(const WeaponConfig& rWpnConfig);
 
+	bool backupExistingNewWeaps();
+
 	void initialize();
 
 

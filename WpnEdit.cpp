@@ -383,11 +383,21 @@ int main(int argc, char** argv)
 	nextWeaponKey = settingMgmt.getNextWeaponKey();
 	prevWeaponKey = settingMgmt.getPrevWeaponKey();
 	AAKeyCode = settingMgmt.getAAKeybindKey();
+	
+	//If newweaps already exists, perhaps the user would like a backup of it made
+	if (newSetup.backupExistingNewWeaps())
+	{
+		cout << "Backed up previous newweaps in case you had any changes in it you wanted to save elsewhere (back up newweaps if you find a setting you like! running this program overwrites newweaps!)." << std::endl;
+	}
 
 
-	//need a good way to quickly map keypresses to modify attribute function
-
-
+	//I was going to do something else fairly important here but I forget what...
+	//Oh yeh, write out newweaps once just to make sure we can write to it before we bother setting kbd hook
+	if (!newSetup.writeOutWeaponConfigFile(myWeap))
+	{
+		cout << "Failed writing to newweaps during startup test, please make sure run as admin, newweaps isnt locked for writing, folder isnt weird, etc etc" << std::endl;
+		return -1;
+	}
 
     HANDLE hThread;
     DWORD dwThread;

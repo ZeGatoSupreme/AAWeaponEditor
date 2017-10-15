@@ -1,6 +1,56 @@
+<!-- Root settings opening tag -->
 <WeaponEditorSettings>
-  
+
+  <!-- List of attributes to edit, you can add entries here if there is
+  another numeric field in a firemode you want to edit -->
   <AttributesToEdit>
+
+    <!-- ** Attribute name is the exact name of the field to edit.
+         The type should be either float or int depending on whether
+         the field can accept numbers with decimals or not. Most fields
+         will be float. **
+         
+    <Attribute name="ExactNameInWeaponCfg" type="float">
+    
+      ** The minimum value this field can have. You cannot lower the value
+      below this. If you begin editing a weapon and its original value is less
+      than the minimum specified here, it will be set to the minimum as its 
+      starting value.**
+      
+      <MinValue>-1</MinValue>
+      
+      ** The maximum value this field can have. You cannot raise the value
+      above this. If you begin editing a weapon and its original value is more
+      than the maximum specified here, it will be set to the maximum as its 
+      starting value.**
+      
+      <MaxValue>10</MaxValue>
+      
+      ** Delta is an unsigned float specifying how much the value should change
+      by each time you raise or lower the value. This should be a positive number.**
+      
+      <Delta>0.01</Delta>
+      
+      ** KeyRaiseValue is the decimal virtual key code corresponding to the keyboard
+      key you want to raise the value on press. You can find a list of these at this
+      site http://cherrytree.at/misc/vk.htm, or https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
+      or in one of the AA config files. Or just google it. **
+      
+      <KeyRaiseValue>104</KeyRaiseValue>
+      
+      ** KeyLowerValue is the decimal virtual key code corresponding to the keyboard
+      key you want to lower the value on press. **
+      
+      <KeyLowerValue>98</KeyLowerValue>
+      
+      ** AddToWeaponIfMissing can be true or false. If true, it will add the attribute
+      to a weapon firemode if it does not already have it, when first edit attempt occurs. The initial value will be
+      the MinValue specified above **
+      
+      <AddToWeaponIfMissing>true</AddToWeaponIfMissing>
+      
+    </Attribute>-->
+
 
     <Attribute name="BulletDrop" type="float">
       <MinValue>-1</MinValue>
@@ -8,6 +58,7 @@
       <Delta>0.01</Delta>
       <KeyRaiseValue>104</KeyRaiseValue>
       <KeyLowerValue>98</KeyLowerValue>
+      <AddToWeaponIfMissing>true</AddToWeaponIfMissing>
     </Attribute>
 
     <Attribute name="BulletSpeed" type="float">
@@ -17,6 +68,7 @@
       <Delta>10</Delta>
       <KeyRaiseValue>102</KeyRaiseValue>
       <KeyLowerValue>100</KeyLowerValue>
+      <AddToWeaponIfMissing>true</AddToWeaponIfMissing>
     </Attribute>
 
     <Attribute name="PitchToAdd" type="float">
@@ -26,6 +78,7 @@
       <Delta>0.025</Delta>
       <KeyRaiseValue>99</KeyRaiseValue>
       <KeyLowerValue>97</KeyLowerValue>
+      <AddToWeaponIfMissing>true</AddToWeaponIfMissing>
     </Attribute>
 
     <Attribute name="YawToAdd" type="float">
@@ -35,16 +88,20 @@
       <Delta>0.025</Delta>
       <KeyRaiseValue>106</KeyRaiseValue>
       <KeyLowerValue>111</KeyLowerValue>
+      <AddToWeaponIfMissing>false</AddToWeaponIfMissing>
     </Attribute>
-    
+
   </AttributesToEdit>
 
-  <!-- Numpad 5 by default -->
+  <!-- Virtual key code used to automatically send keypresses to an AA keybind
+  'loadweapons newweaps', Numpad 5 by default -->
   <AAKeyBindKey key="101"/>
 
+  <!-- Virtual key code to select next weapon (or firemode), Numpad 9 by default -->
   <NextWeaponKey key="105" />
 
+  <!-- Virtual key code to select prev weapon (or firemode), Numpad 7 by default -->
   <PrevWeaponKey key="103" />
-  
-  
+
+
 </WeaponEditorSettings>

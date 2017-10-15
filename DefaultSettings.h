@@ -1,3 +1,3 @@
 #pragma once
 
-extern const unsigned char defaultSettingsBytes[4121];
+extern const unsigned char defaultSettingsBytes[4138];

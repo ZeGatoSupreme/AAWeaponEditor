@@ -160,7 +160,9 @@
     <ClInclude Include="WeaponEntry.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="DefaultSettings.xml" />
+    <Xml Include="DefaultSettings.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
