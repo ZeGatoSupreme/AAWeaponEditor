@@ -209,6 +209,7 @@ forget or something.
 
 For New Users:
 
+This tool allows you to edit weapon config file while in game.
 See the first post in the thread and read that, then read the above to see whats new in the version.
 
 What else has changed?
