@@ -73,11 +73,6 @@ public:
 	//get current dir
 	string getCurDir() const { return curDirectory; }
 
-	//get,set file path
-	void setCurConfigFilePath(const string& fPath) { curConfigFilePath = fPath; }
-
-	string getCurConfigFilePath() const { return curConfigFilePath; }
-
 	static inline const std::map<string, SETTING_VALUE_TYPE>&  getAttributesToEditMap() { return attributesToEdit; }
 
 	const std::shared_ptr<AttributeBase>& getAttributeObjectByIndex(int index) const 
@@ -116,7 +111,6 @@ protected:
 	bool		tryParseXMLSettings(const string&);
 
 	string		curDirectory;
-	string		curConfigFilePath;
 
 	string		keybindprefix;
 	string		vkkeycodespath;

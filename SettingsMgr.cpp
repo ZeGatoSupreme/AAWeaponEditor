@@ -31,23 +31,22 @@ const float SettingsMgr::floatEpsilon = 0.00000005;
 //default no args constructor
 SettingsMgr::SettingsMgr() :
 	curDirectory(""),
-	curConfigFilePath(""),
 	isReady(false)
 {
 
 }
 
+
+//This constructor needs to be refactored, old code was a mess and this just tries to wallpaper it over.
 //constructor which takes a string path to the directory the exe was run from
 SettingsMgr::SettingsMgr(const string& directory) :
 	curDirectory(directory),
-	curConfigFilePath(""),
 	isReady(false)
 {
 
 	if (directory.empty())
 	{
 		setCurDir("");
-		setCurConfigFilePath("");
 		cout << "Could not get directory path the program is executing in. Pls move to a normal and/or shorter folder, run as admin, try again. Using default settings.\n";
 		return;
 	}
@@ -70,11 +69,22 @@ SettingsMgr::SettingsMgr(const string& directory) :
 		//Try to create the settings file if it is missing
 		if (!createSettingsFile())
 		{
-			cout << "Couldn't create settings file, using defaults.\n" << endl;
+			cout << "Settings file not in directory and couldn't create settings file, run as admin, check folder, verify persmissions, then try again." << endl;
+			exit(-1);
+		}
+		else
+		{
+			hSearchHandle = FindFirstFile(searchConfigFileInDir.c_str(), sResult); 
+			if (hSearchHandle == INVALID_HANDLE_VALUE)
+			{
+				cout << "Created Settings.xml however FindFirstFile could not locate it. Clearly something is off. Verify permissions, run as admin, yadda yadda, try again." << std::endl;
+				exit(-1);
+			}
+
+			cout << "Settings.xml not found, created file with default settings." << std::endl;
+
 		}
 
-		setCurConfigFilePath("");
-		return;
 	}
 
 	//Make sure they don't randomly have a file which begins with Settings.xml but is not the Settings.xml
@@ -110,13 +120,12 @@ SettingsMgr::SettingsMgr(const string& directory) :
 
 		if (!createSettingsFile())
 		{
-			cout << "Couldn't create settings file, using defaults. Run as admin and/or move to normal folder if you want to change settings\n" << endl;
+			cout << "Couldn't create settings file, and Settings.xml not in directory. Run as admin and/or move to normal folder." << endl;
+			exit(-1);
 		}
-		return;
-	}
 
-	//store path to config file
-	setCurConfigFilePath(searchConfigFileInDir);
+		cout << "Settings.xml not found, created file with default settings." << std::endl;
+	}
 
 	bool readSettingsSuccess = false;
 
@@ -160,6 +169,7 @@ SettingsMgr::SettingsMgr(const string& directory) :
 				exit(-1);
 			}
 
+			cout << "Settings.xml not found, created file with default settings." << std::endl;
 		}
 		catch (exception& ex)
 		{
@@ -359,8 +369,6 @@ bool SettingsMgr::createSettingsFile()
 	fOut.flush();
 
 	fOut.close();
-
-	setCurConfigFilePath(newFileName);
 
 	return true;
 }
