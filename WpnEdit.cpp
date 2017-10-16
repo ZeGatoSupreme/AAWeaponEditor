@@ -240,7 +240,7 @@ void handleRaiseWeaponOrFiremode()
 			{
 				std::string attributeName = keysToAtrIt->second->AttributeName();
 				//write out new firemode stats
-				cout << "Weapon " << curWeapon.getWeaponName() << ", Firemode: " << curFiremodeIndex << ", " << attributeName << ": " << curWeapon.getFiremodeByIndex(curFiremodeIndex).getFiremodeAttributeValue<float>(attributeName) << std::endl;
+				cout << "Weapon " << curWeapon.getWeaponName() << ", Firemode: " << curFiremodeIndex << ", " << attributeName << ": " << std::fixed << curWeapon.getFiremodeByIndex(curFiremodeIndex).getFiremodeAttributeValue<float>(attributeName) << std::endl;
 			}
 			else if (keysToAtrIt->second->AttributeType() == SETTING_VALUE_TYPE::IntValue)
 			{

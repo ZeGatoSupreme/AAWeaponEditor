@@ -25,7 +25,7 @@ const string SettingsMgr::XML_SETTINGS_FILE_NAME = "Settings.xml";
 std::map<string, SETTING_VALUE_TYPE> SettingsMgr::attributesToEdit;
 
 //precision to which we will check when comparing floats
-const float SettingsMgr::floatEpsilon = 0.00000005;
+const float SettingsMgr::floatEpsilon = 0.000000001;
 
 
 //default no args constructor
@@ -649,6 +649,12 @@ std::shared_ptr<AttributeBase> SettingAttributeFactory::ProcessFloatAttributeCas
 	{
 		std::stringstream ss("");
 		ss << "Attribute " << wpnAttributeName << " had a min value greater than max in Settings.xml.";
+		throw InvalidXMLDataException(ss.str());
+	}
+	else if (atrDelta < 0 || (atrDelta > 0 && atrDelta < SettingsMgr::floatEpsilon))
+	{
+		std::stringstream ss("");
+		ss << "Attribute " << wpnAttributeName << " had a delta value that was either below 0 or greater than 0 but smaller than 0.00000001." << std::endl;
 		throw InvalidXMLDataException(ss.str());
 	}
 

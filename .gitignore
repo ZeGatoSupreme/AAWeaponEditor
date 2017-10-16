@@ -46,3 +46,11 @@ Network Trash Folder
 Temporary Items
 .apdisk
 *.suo
+*.obj
+*.tlog
+*.zip
+*.pdb
+*.ipdb
+*.iobj
+*.log
+*.exe

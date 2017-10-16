@@ -58,20 +58,41 @@ FiremodeChangeResult WeaponConfigEntry::setFiremodeAttributeValue(int firemodeIn
 				 return FiremodeChangeResult::AttributeDoesntExistOnWeaponAndNotForcedToAdd;
 			 }
 		 }
-		
-		 //Check if already maxed or min'ed
-		 if (raiseValue && oldCurVal + SettingsMgr::floatEpsilon >= fPtr->getAttributeMax())
-			 return FiremodeChangeResult::NoChangeInAttribute;
-		 else if (!raiseValue && oldCurVal - SettingsMgr::floatEpsilon <= fPtr->getAttributeMin())
-			 return FiremodeChangeResult::NoChangeInAttribute;
 
-		 //change value
-		 float newCurVal = raiseValue ? oldCurVal + fPtr->getAttributeDelta() : oldCurVal - fPtr->getAttributeDelta();
+		 //Need to change this, if value is above/below there is a bug
+
+		 ////Check if already maxed or min'ed
+		 //if (raiseValue && oldCurVal + SettingsMgr::floatEpsilon >= fPtr->getAttributeMax())
+			// return FiremodeChangeResult::NoChangeInAttribute;
+		 //else if (!raiseValue && oldCurVal - SettingsMgr::floatEpsilon <= fPtr->getAttributeMin())
+			// return FiremodeChangeResult::NoChangeInAttribute;
+
+		 float newCurVal = 0;
+
+		 if (oldCurVal - SettingsMgr::floatEpsilon > fPtr->getAttributeMax())
+		 {
+			 //It is above the maximum. This is probably the first time we are editing this attribute on this firemode.
+			 oldCurVal = fPtr->getAttributeMax();
+		 }
+		 else if (oldCurVal + SettingsMgr::floatEpsilon < fPtr->getAttributeMin())
+		 {
+			 //It is below the min. This is probably the first time we are editing this attribute on this firemode.
+			 oldCurVal = fPtr->getAttributeMin();
+		 }
+		 else
+		 {
+			 //See if the change amount is zero
+			 if (fPtr->getAttributeDelta() <= SettingsMgr::floatEpsilon)
+				 return FiremodeChangeResult::NoChangeInAttribute;
+			 
+			 //change value
+			 newCurVal = raiseValue ? oldCurVal + fPtr->getAttributeDelta() : oldCurVal - fPtr->getAttributeDelta();
+		 }
 
 		 //If we went over max or min, set to max/min
-		 if (raiseValue && newCurVal + SettingsMgr::floatEpsilon >= fPtr->getAttributeMax())
+		 if (raiseValue && newCurVal - SettingsMgr::floatEpsilon > fPtr->getAttributeMax())
 			 newCurVal = fPtr->getAttributeMax();
-		 else if (!raiseValue && newCurVal - SettingsMgr::floatEpsilon <= fPtr->getAttributeMin())
+		 else if (!raiseValue && newCurVal + SettingsMgr::floatEpsilon < fPtr->getAttributeMin())
 			 newCurVal = fPtr->getAttributeMin();
 
 		 //set attribute value
@@ -116,19 +137,38 @@ FiremodeChangeResult WeaponConfigEntry::setFiremodeAttributeValue(int firemodeIn
 			}
 		}
 
-		//Check if already maxed or min'ed
-		if (raiseValue && oldCurVal >= fPtr->getAttributeMax())
-			return FiremodeChangeResult::NoChangeInAttribute;
-		else if (!raiseValue && oldCurVal <= fPtr->getAttributeMin())
-			return FiremodeChangeResult::NoChangeInAttribute;
+		////Check if already maxed or min'ed
+		//if (raiseValue && oldCurVal >= fPtr->getAttributeMax())
+		//	return FiremodeChangeResult::NoChangeInAttribute;
+		//else if (!raiseValue && oldCurVal <= fPtr->getAttributeMin())
+		//	return FiremodeChangeResult::NoChangeInAttribute;
 
-		//change value
-		int newCurVal = raiseValue ? oldCurVal + fPtr->getAttributeDelta() : oldCurVal - fPtr->getAttributeDelta();
+		int newCurVal = 0;
+
+		if (oldCurVal > fPtr->getAttributeMax())
+		{
+			//It is above the maximum. This is probably the first time we are editing this attribute on this firemode.
+			oldCurVal = fPtr->getAttributeMax();
+		}
+		else if (oldCurVal < fPtr->getAttributeMin())
+		{
+			//It is below the min. This is probably the first time we are editing this attribute on this firemode.
+			oldCurVal = fPtr->getAttributeMin();
+		}
+		else
+		{
+			//See if the change amount is zero
+			if (fPtr->getAttributeDelta() == 0)
+				return FiremodeChangeResult::NoChangeInAttribute;
+
+			//change value
+			newCurVal = raiseValue ? oldCurVal + fPtr->getAttributeDelta() : oldCurVal - fPtr->getAttributeDelta();
+		}
 
 		//If we went over max or min, set to max/min
-		if (raiseValue && newCurVal >= fPtr->getAttributeMax())
+		if (raiseValue && newCurVal > fPtr->getAttributeMax())
 			newCurVal = fPtr->getAttributeMax();
-		else if (!raiseValue && newCurVal <= fPtr->getAttributeMin())
+		else if (!raiseValue && newCurVal < fPtr->getAttributeMin())
 			newCurVal = fPtr->getAttributeMin();
 
 		//set attribute value
@@ -196,8 +236,8 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 		for (int i = 0; i < fmOut.tabsToInsertBeforeAttribute; i++)
 			os << '\t';
 
-		//get attribute name
-		os << '<' << fAtrIt->first << " " << fAtrIt->second << '>' << "</" << fAtrIt->first << '>' << std::endl;
+		//get attribute name and value, set it to use fixed floating point notation so we dont end up with 23e+009
+		os << '<' << fAtrIt->first << " " << std::fixed << fAtrIt->second << '>' << "</" << fAtrIt->first << '>' << std::endl;
 		
 	}
 
