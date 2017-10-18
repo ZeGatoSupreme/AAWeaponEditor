@@ -5,6 +5,8 @@ Thanks and praise to Helios for his hard work making kickass hacks. This tool is
 
 Thanks to Lee Thomason for tinyxml2 https://github.com/leethomason/tinyxml2 which I used in the project.
 
+Requires VC++ 2015 redist, https://www.microsoft.com/en-us/download/details.aspx?id=53840
+
 For advanced users/people who know what they are doing (New users skip to bottom):
 
 This release adds support for multiple firemodes per weapon, and 
