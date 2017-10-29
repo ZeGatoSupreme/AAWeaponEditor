@@ -358,6 +358,7 @@ bool findDupeInstance()
 			break;
 		}
 
+		CloseHandle(allProcH);
 
 	} while (Process32Next(hSnapShot, &procEntry));
 
