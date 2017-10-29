@@ -7,7 +7,10 @@
 #include "SettingsMgr.h"
 #include <vector>
 #include <stdio.h>
+#include <TlHelp32.h>
+#include <psapi.h>
 #include <map>
+#include <tchar.h> //fucking ms
 
 using std::exit;
 using namespace std;
@@ -36,6 +39,8 @@ uint32_t nextWeaponKey, prevWeaponKey, AAKeyCode;
 
 //What can I say, its late and my motivation is dying, just making some separate functions for handling wpn/firemode transitions instead of wrapping in class
 #pragma region lazychangeweaponorfiremodehandlers
+
+//per h8's request, have it skip back to to first firemode when going back 1 weapon
 void handleLowerWeaponOrFiremode()
 {
 	if (curWeaponIndex == 0)
@@ -47,13 +52,13 @@ void handleLowerWeaponOrFiremode()
 		//see if we are on the first firemode for current weapon
 		if (curFiremodeIndex == 0)
 		{
-			//Wrap around to last firemode of last weapon
+			//Wrap around to first firemode of last weapon
 
 			curWeaponIndex = myWeap.getWeaponConfigEntryCount() - 1;
 
 			const WeaponConfigEntry& nCurWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
 
-			curFiremodeIndex = nCurWeapon.getFiremodeCount() - 1;
+			curFiremodeIndex = 0;
 
 			cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
@@ -74,7 +79,8 @@ void handleLowerWeaponOrFiremode()
 			const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(--curWeaponIndex);
 
 			//If we are going backwards, should start at highest firemode index
-			curFiremodeIndex = curWeapon.getFiremodeCount() - 1;
+			//Naw just start at fm zero to have a faster way of navigating
+			curFiremodeIndex = 0;
 
 			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
@@ -272,9 +278,106 @@ DWORD WINAPI setKeyBoardHook(LPVOID lpParm)
     return 0;
 }
 
+bool findDupeInstance()
+{
+
+	//Get our proc name and id first
+	DWORD ourProcID = GetCurrentProcessId();
+	HANDLE ourProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ourProcID);
+	if (ourProcHandle == NULL || ourProcHandle == INVALID_HANDLE_VALUE)
+	{
+		cout << "Failed open a handle to our own process, make sure you run as admin." << std::endl;
+		return false;
+	}
+
+	TCHAR szOurProcName[MAX_PATH] = TEXT("Ours");
+
+	HMODULE ourModHandles;
+
+	DWORD oNeeded;
+
+	if (!EnumProcessModules(ourProcHandle, &ourModHandles, sizeof(ourModHandles), &oNeeded))
+	{
+		cout << "Failed open a handle to our own process, make sure you run as admin." << std::endl;
+		CloseHandle(ourProcHandle);
+		return false;
+	}
+
+	GetModuleBaseName(ourProcHandle, ourModHandles, szOurProcName, sizeof(szOurProcName) / sizeof(TCHAR));
+	CloseHandle(ourProcHandle);
+
+	//Proc name will be stored in szOurProcName now
+
+	//boilerplate msdn code
+	//get all procs
+	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapShot == INVALID_HANDLE_VALUE || hSnapShot == NULL)
+		return false;
+
+	PROCESSENTRY32 procEntry;
+	procEntry.dwSize = sizeof(PROCESSENTRY32);
+	if (!Process32First(hSnapShot, &procEntry))
+	{
+		cout << "Failed to snapshot running procs, make sure run as admin." << std::endl;
+		CloseHandle(hSnapShot);
+		return false;
+	}
+
+	HANDLE allProcH = INVALID_HANDLE_VALUE, allModsH = INVALID_HANDLE_VALUE;
+	HMODULE theirModules;
+	DWORD cbModEnum = 0;
+	TCHAR theirBaseModName[MAX_PATH] = TEXT("Theirs");
+	bool foundDupe = false;
+
+	do
+	{
+		if (procEntry.th32ProcessID == ourProcID)
+			continue;
+
+		//Those dirty bastards at ms didnt use TCHAR for PROCESSENTRY32::szExeFile
+		//So we either need to start manually checking TCHAR type to compare to that, which defeats the purpose of using TCHAR
+		//Or keep going until we get another field which does use TCHAR
+
+		allProcH = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, procEntry.th32ProcessID);
+		if (allProcH == INVALID_HANDLE_VALUE || allProcH == NULL)
+			continue;
+
+		if (!EnumProcessModules(allProcH, &theirModules, sizeof(theirModules), &cbModEnum))
+		{
+			CloseHandle(allProcH);
+			continue;
+		}
+
+		GetModuleBaseName(allProcH, theirModules, theirBaseModName, sizeof(theirBaseModName) / sizeof(TCHAR));
+
+		if (_tccmp(theirBaseModName, szOurProcName) == 0)
+		{
+			//Same name, different proc ids, dupe instance.
+			foundDupe = true;
+			CloseHandle(allProcH);
+			break;
+		}
+
+
+	} while (Process32Next(hSnapShot, &procEntry));
+
+	CloseHandle(hSnapShot);
+
+	return foundDupe;
+
+}
+
 
 int main(int argc, char** argv)
 {
+
+	if (findDupeInstance())
+	{
+		MessageBox(NULL, "You have an instance of wpnedit running. Close that first.", "Dupe instance", MB_OK);
+		cout << "You already have an instance of the wpn editor running. Close that one first. I'd close it but I'd rather not add error checks if people not running as admin and such." << std::endl;
+		exit(-1);
+	}
+
 	//Locate config files and such, older code but does the job
 	newSetup.initialize();
 

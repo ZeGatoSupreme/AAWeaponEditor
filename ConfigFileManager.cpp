@@ -21,13 +21,25 @@ bool ConfigFileManager::writeOutWeaponConfigFile(const WeaponConfig & rWpnConfig
 	if (newWeaponFilePath.empty())
 		return false;
 
-	//write it back out to the keybind cfg file
+	//write it back out to the wpn cfg file path
 	ofstream wpnConfigWriter(newWeaponFilePath, std::ofstream::out | std::ofstream::trunc);
 
-	if (wpnConfigWriter.fail())
+	int retryCount = 2;
+
+	while ((wpnConfigWriter.fail() || wpnConfigWriter.bad()) && --retryCount >= 0)
 	{
-		return false;
+		cout << "Couldn't open the output config file for writing, sleeping briefly then trying again." << std::endl;
+
+		wpnConfigWriter.close();
+
+		//Try one more time after sleeping for a brief period (10 ms)
+		Sleep(10);
+
+		wpnConfigWriter = ofstream(newWeaponFilePath, std::ofstream::out | std::ofstream::trunc);
 	}
+
+	if (retryCount < 0 && (wpnConfigWriter.fail() || wpnConfigWriter.bad()))
+		return false;
 
 	std::vector<WeaponConfigEntry>::const_iterator wpnIt = rWpnConfig.configWeaponEntries.begin();
 
@@ -98,6 +110,8 @@ void ConfigFileManager::initialize()
 	char curPathBuffer[MAX_PATH];
 
 	DWORD curPathBufferLen = 0;
+
+	SetLastError(0);
 
 	//returns length of max path
 	curPathBufferLen = GetCurrentDirectory(0, curPathBuffer);
@@ -171,6 +185,8 @@ bool ConfigFileManager::findAndStoreWeaponFilePath()
 	string curFileLine = "";
 
 	ifstream fOpener;
+
+	SetLastError(0);
 
 	hSearchHandle = FindFirstFile(searchCurrentDirPath.c_str(), sResult);
 
@@ -296,6 +312,8 @@ bool ConfigFileManager::findAndStoreKeybindFilePath()
 
 	ifstream fOpener;
 
+	SetLastError(0);
+
 	hSearchHandle = FindFirstFile(searchCurrentDirPath.c_str(), sResult);
 
 	if (hSearchHandle == INVALID_HANDLE_VALUE || GetLastError() == ERROR_FILE_NOT_FOUND)
@@ -413,6 +431,8 @@ bool ConfigFileManager::findAndStoreKeyValueNamesPath()
 	string curFileLine = "";
 
 	ifstream fOpener;
+
+	SetLastError(0);
 
 	hSearchHandle = FindFirstFile(searchCurrentDirPath.c_str(), sResult);
 
