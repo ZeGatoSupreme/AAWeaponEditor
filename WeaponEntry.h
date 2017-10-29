@@ -54,7 +54,12 @@ private:
 	std::vector<string> firemodeLeftOverStrings;
 
 	//since we generate attribute tags that we edit, isntead of copying them from source, we need to know how many tabs to insert before we output them to ostream
-	int tabsToInsertBeforeAttribute;
+	//To consider: H8society sent me a file that had a bunch of spaces in front of the tab instead of tab breaks. Maybe make this a generic 'breaks before tag' field
+	//and have a bool to determine whether to use tab breaks or spaces.
+	int breaksToInsertBeforeAttribute;
+
+	//Whether we can use tabs or not
+	bool useTabsForBreaks;
 
 	//Called if user tries to change an attribute that was not present in original weapon config file, but they specified force add in settings.xml
 	template <typename T>

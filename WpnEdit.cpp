@@ -38,24 +38,7 @@ uint32_t nextWeaponKey, prevWeaponKey, AAKeyCode;
 #pragma region lazychangeweaponorfiremodehandlers
 void handleLowerWeaponOrFiremode()
 {
-	//check to see if we only have one weapon
-	if (myWeap.getWeaponConfigEntryCount() == 1)
-	{
-		const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
-
-		//see if we are on the first firemode for current weapon
-		if (curFiremodeIndex == 0)
-		{
-			//cant go any further down
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
-		}
-		else
-		{
-			//decriment firemode index
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << --curFiremodeIndex << std::endl;
-		}
-	}
-	else if (curWeaponIndex == 0)
+	if (curWeaponIndex == 0)
 	{
 		//We are on the first weapon, check to see if we are on t he first firemode or not.
 
@@ -64,8 +47,15 @@ void handleLowerWeaponOrFiremode()
 		//see if we are on the first firemode for current weapon
 		if (curFiremodeIndex == 0)
 		{
-			//Nothing to do, output current weapon and firemode.
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
+			//Wrap around to last firemode of last weapon
+
+			curWeaponIndex = myWeap.getWeaponConfigEntryCount() - 1;
+
+			const WeaponConfigEntry& nCurWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
+
+			curFiremodeIndex = nCurWeapon.getFiremodeCount() - 1;
+
+			cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
 		else
 		{
@@ -77,11 +67,14 @@ void handleLowerWeaponOrFiremode()
 	{
 		//Else we can lower weapon or firemode
 
-		//If we are on the first firemode, switch to prev weapon and reset firemode index to 0
+		//If we are on the first firemode, switch to prev weapon and set firemode index to prev weapons highest firemode index
 		if (curFiremodeIndex == 0)
 		{
 			//output current weapon and firemode index after decrimenting curWeaponIndex
 			const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(--curWeaponIndex);
+
+			//If we are going backwards, should start at highest firemode index
+			curFiremodeIndex = curWeapon.getFiremodeCount() - 1;
 
 			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
@@ -98,33 +91,27 @@ void handleLowerWeaponOrFiremode()
 
 void handleRaiseWeaponOrFiremode()
 {
-	//check to see if we only have one weapon
-	if (myWeap.getWeaponConfigEntryCount() == 1)
+
+	const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
+
+	int firemodeCount = curWeapon.getFiremodeCount();
+
+	//Check to see if we are on the last weapon
+	if (myWeap.getWeaponConfigEntryCount() - 1 == curWeaponIndex) 
 	{
 
-		const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
-
 		//see if we are on the last firemode for current weapon
-		if (curWeapon.getFiremodeCount() - 1 == curFiremodeIndex)
+		if (firemodeCount - 1 == curFiremodeIndex)
 		{
-			//Nothing to do, output current weapon and firemode.
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
-		}
-		else
-		{
-			//increment firemode index
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << ++curFiremodeIndex << std::endl;
-		}
-	}
-	else if (myWeap.getWeaponConfigEntryCount() - 1 == curWeaponIndex) //Check to see if we are on the last weapon
-	{
-		const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
 
-		//see if we are on the last firemode for current weapon
-		if (curWeapon.getFiremodeCount() - 1 == curFiremodeIndex)
-		{
-			//Nothing to do, output current weapon and firemode.
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
+			//Wrap around to first weapon and first firemode
+			curWeaponIndex = curFiremodeIndex = 0;
+
+			//get first weapon
+			const WeaponConfigEntry& nCurWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
+
+			//output current weapon and firemode.
+			cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
 		else
 		{
@@ -135,7 +122,6 @@ void handleRaiseWeaponOrFiremode()
 	else
 	{	//Else we can increment the current weapon or firemode
 
-		int firemodeCount = myWeap.getWeaponConfigAtIndex(curWeaponIndex).getFiremodeCount();
 
 		//If we are on the last firemode, switch to next weapon and reset firemode index to 0
 		if (firemodeCount - 1 == curFiremodeIndex)
@@ -143,15 +129,14 @@ void handleRaiseWeaponOrFiremode()
 			curFiremodeIndex = 0;
 
 			//output current weapon and firemode index after incrementing curWeaponIndex
-			const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(++curWeaponIndex);
+			const WeaponConfigEntry& nCurWeapon = myWeap.getWeaponConfigAtIndex(++curWeaponIndex);
 
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
+			cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
 		else
 		{
 			//Increment firemode index and output weapon name and firemodeindex
 			//output current weapon and firemode index
-			const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
 
 			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << ++curFiremodeIndex << std::endl;
 		}

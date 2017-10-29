@@ -232,9 +232,11 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 	{
 		attributeLine = "";
 
-		//insert our tabs
-		for (int i = 0; i < fmOut.tabsToInsertBeforeAttribute; i++)
-			os << '\t';
+		char breakToInsert = fmOut.useTabsForBreaks ? '\t' : ' ';
+
+		//insert our tabs (or spaces)
+		for (int i = 0; i < fmOut.breaksToInsertBeforeAttribute; i++)
+			os << breakToInsert;
 
 		//get attribute name and value, set it to use fixed floating point notation so we dont end up with 23e+009
 		os << '<' << fAtrIt->first << " " << std::fixed << fAtrIt->second << '>' << "</" << fAtrIt->first << '>' << std::endl;
@@ -247,7 +249,7 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 		attributeLine = "";
 
 		//insert our tabs
-		for (int i = 0; i < fmOut.tabsToInsertBeforeAttribute; i++)
+		for (int i = 0; i < fmOut.breaksToInsertBeforeAttribute; i++)
 			os << '\t';
 
 		//get attribute name
@@ -265,7 +267,7 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 
 Firemode::Firemode()
 	:
-	tabsToInsertBeforeAttribute(0)
+	breaksToInsertBeforeAttribute(0)
 {
 //TODO
 }

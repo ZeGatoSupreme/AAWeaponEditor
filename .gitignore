@@ -54,3 +54,8 @@ Temporary Items
 *.iobj
 *.log
 *.exe
+x64/Release/Settings.xml
+*.ilk
+*.idb
+*.opendb
+*.db

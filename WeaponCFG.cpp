@@ -191,7 +191,7 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 	size_t lastTokenResult = 0;
 
 	//flag for if we are in the middle of a firemode or not
-	bool foundFiremode = false;
+	bool insideFiremode = false;
 
 	//flag for whether we have found an attribute from Settings.xml in the current weapon or not, so we can read its current value
 	bool foundAttributeToEdit = false;
@@ -281,13 +281,13 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 	for (auto strIt = weaponLines.begin(); strIt != weaponLines.end(); strIt++)
 	{
 		//If we havent found a firemode, make sure we are startign one
-		if (!foundFiremode)
+		if (!insideFiremode)
 		{
 			if (!std::regex_match(*strIt, firemodeMatchRegex))
 				return 0;
 			else
 			{
-				foundFiremode = true;
+				insideFiremode = true;
 			}
 		}
 		else
@@ -295,7 +295,7 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 			//check if this is firemode closing brace
 			if (std::regex_match(*strIt, firemodeCloseRegex))
 			{
-				foundFiremode = false;
+				insideFiremode = false;
 
 				firemodesFound++;
 			}
@@ -304,19 +304,48 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 		foundAttributeToEdit = false;
 
 		//pull tab count from <IsValid as even empty weapons will have this
+		size_t isValidIndex;
 
-		if (!countedTabs && strIt->find("</Valid>") != string::npos)
+		if (!countedTabs && (isValidIndex = strIt->find("<Valid")) != string::npos)
 		{
 			//count tabs to see how many our attribute tags will need
 			int tabCount = 0;
 
-			for (int i = 0; i < strIt->length(); i++)
+			//edit: H8society sent me a weapon config that had a bunch of spaces in front of tags instead of tab chars.
+			//so check for both. The file he sent me had 4 spaces to one tab char. But tab chars are supposed to indent by 'one level'. Screw it.
+			if ((*strIt)[0] == ' ')
 			{
-				if ((*strIt)[i] == '\t')
-					tabCount++;
+				for (int i = 0; i < isValidIndex; i++)
+				{
+					if ((*strIt)[i] == ' ')
+						tabCount++;
+					else
+						break;
+				}
+
+				//See if we can still use tabs, if spaces is cleanly divisible by 4.
+				if (tabCount % 4 == 0)
+					tabCount /= 4;
+				else
+					curFiremode.useTabsForBreaks = false;
+
+			}
+			else if ((*strIt)[0] == '\t')
+			{
+				for (int i = 0; i < strIt->length(); i++)
+				{
+					if ((*strIt)[i] == '\t')
+						tabCount++;
+					else
+						break;
+				}
+			}
+			else
+			{
+				cout << "\n no spacing detected in front of <Valid> tag, not going to put any spaces in front of attribute tags that are edited." << std::endl;
 			}
 
-			curFiremode.tabsToInsertBeforeAttribute = tabCount;
+			curFiremode.breaksToInsertBeforeAttribute = tabCount;
 			countedTabs = true;
 		}
 
@@ -413,7 +442,7 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 			curFiremode.addNonAttributeLine(saveStr);
 		}
 
-		if (!foundFiremode)
+		if (!insideFiremode)
 		{
 			//We just finished one fire mode, add it to the weapon and reset the temp firemode object
 			curWpnObj.AddFiremode(curFiremode);
@@ -430,7 +459,7 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 	}
 
 	//if we end in the middle of a firemode, its an invalid config
-	if (foundFiremode)
+	if (insideFiremode)
 		return 0;
 
 	return firemodesFound;
