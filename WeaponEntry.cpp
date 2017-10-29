@@ -248,6 +248,8 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 	{
 		attributeLine = "";
 
+		char breakToInsert = fmOut.useTabsForBreaks ? '\t' : ' ';
+
 		//insert our tabs
 		for (int i = 0; i < fmOut.breaksToInsertBeforeAttribute; i++)
 			os << '\t';
@@ -267,7 +269,7 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 
 Firemode::Firemode()
 	:
-	breaksToInsertBeforeAttribute(0)
+	breaksToInsertBeforeAttribute(0), useTabsForBreaks(true)
 {
 //TODO
 }
