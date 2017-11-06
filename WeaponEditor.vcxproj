@@ -145,6 +145,7 @@
     <ClCompile Include="AttributeBase.cpp" />
     <ClCompile Include="ConfigFileManager.cpp" />
     <ClCompile Include="DefaultSettings.cpp" />
+    <ClCompile Include="LoggerMgr.cpp" />
     <ClCompile Include="SettingsMgr.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="WpnEdit.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="ConfigFileManager.h" />
     <ClInclude Include="ConfigHelpers.h" />
     <ClInclude Include="DefaultSettings.h" />
+    <ClInclude Include="LoggerMgr.h" />
     <ClInclude Include="SettingsMgr.h" />
     <ClInclude Include="tinyxml2.h" />
     <ClInclude Include="WeaponCFG.h" />

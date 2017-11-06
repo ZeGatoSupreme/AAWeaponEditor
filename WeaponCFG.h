@@ -37,7 +37,9 @@ class WeaponConfig
 
 public:
 
-	ReadWeaponConfigResults readWeaponConfigFile(const string& cfgFilePath);
+	WeaponConfig();
+
+	ReadWeaponConfigResults readWeaponConfigFile(const std::string& cfgFilePath);
 
 	int getWeaponConfigEntryCount() const { return configWeaponEntries.size(); }
 

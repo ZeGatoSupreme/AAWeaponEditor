@@ -9,7 +9,7 @@ using namespace std;
 
 enum STRINGHELPER_WEAPON_CONSTANTS
 {
-	CLOSETAG_LEN = 9,
+	CLOSETAG_LEN = 11,
 	MINWEAPON_LEN = 18
 };
 

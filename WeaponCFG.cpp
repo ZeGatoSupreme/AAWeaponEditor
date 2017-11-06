@@ -5,9 +5,15 @@
 #include <string>
 #include "ConfigHelpers.h"
 #include <regex>
+#include "LoggerMgr.h"
 
 using namespace std;
 
+
+WeaponConfig::WeaponConfig()
+	: configWeaponEntries()
+{
+}
 
 //returns true if we succesfully read and parsed at least one weapon
 ReadWeaponConfigResults WeaponConfig::readWeaponConfigFile(const string& cfgFilePath)
@@ -16,20 +22,10 @@ ReadWeaponConfigResults WeaponConfig::readWeaponConfigFile(const string& cfgFile
 	if (cfgFilePath.empty())
 		return ReadWeaponConfigResults::ConfigFilePathEmpty;
 
-	//try to read the weapon config file
-	ifstream readConfigFileStream(cfgFilePath, std::ios::binary | std::ios::ate);
-
-	//make sure the filestream is ok
-	if (readConfigFileStream.fail())
-	{
-		readConfigFileStream.close();
-		return ReadWeaponConfigResults::FailedToReadConfigFile;
-	}
-
 	std::regex weaponMatchRegex("\\s*<\\s*[W|w]eapon ");
 
-	//create a filestream to read the settings file
-	ifstream readSettingFileStream(cfgFilePath, std::ios::binary | std::ios::ate);
+	//create a filestream to read the settings file, start at end to get size, read as binary to avoid formatting bs
+	ifstream readSettingFileStream(cfgFilePath, std::ios::ate | std::ios::binary);
 
 	//make sure the filestream is ok
 	if (readSettingFileStream.fail())
@@ -38,7 +34,7 @@ ReadWeaponConfigResults WeaponConfig::readWeaponConfigFile(const string& cfgFile
 		return ReadWeaponConfigResults::FailedToReadConfigFile;
 	}
 
-	//get fiole size
+	//size
 	streamsize fileSize = readSettingFileStream.tellg();
 
 	//reset stream buffer position
@@ -124,10 +120,18 @@ int WeaponConfig::parseWeaponEntries(const std::vector<string>& wpnStrings)
 
 	//std::regex weaponCfgPattern("^\\s*<\\s*Weapon\\s*[^\\s>]+\\s*>\\s*\\r?\\n?$(.|[\\r\\n\\t])*</\\s*Weapon\\s*>\\s*\\r?\\n?$");
 
+	LogHelper& logInstance = LogHelper::getInstance();
+
 	//Loop through each weapon config string and attempt to parse it.
 	//*wpnStrIt = string holding individual weapon config
 	for (auto wpnStrIt = wpnStrings.begin(); wpnStrIt != wpnStrings.end(); wpnStrIt++)
 	{
+
+		if (logInstance.getLoggingState())
+		{
+			logInstance << "Dumping next weapon string." << "\r\n\r\n";
+			logInstance << *wpnStrIt;
+		}
 
 		//regex match <Weapon  or <weapon or any variation of those with extra whitespace before
 		if (std::regex_search(*wpnStrIt, weaponMatchRegex))
@@ -157,7 +161,7 @@ int WeaponConfig::parseWeaponEntries(const std::vector<string>& wpnStrings)
 				configWeaponEntries.push_back(currentWeapon);
 			else
 			{
-				cout << "Unable to read a firemode from weapon " + weaponName + ", weapon will be skipped." << std::endl;
+				std::cout << "Unable to read a firemode from weapon " + weaponName + ", weapon will be skipped." << std::endl;
 			}
 
 			continue;
@@ -181,7 +185,7 @@ int WeaponConfig::parseWeaponEntries(const std::vector<string>& wpnStrings)
 int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCfgString, WeaponConfigEntry& curWpnObj)
 {
 
-	//Break the current weapon up into lines
+	//Break the current weapon up into lines, windows uses \r\n for line separators, that pain in the ass bill gates
 	string splitTokens = "\r\n";
 
 	//index of whatever we are looking for
@@ -199,6 +203,9 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 	//make sure we have this at the start of a firemode, its a regex that looks for <Firemode with tolerance for various spacings and caps
 	std::regex firemodeMatchRegex("^\\s*<\\s*[F|f]ire[M|m]ode\\s*>[\r][\n]$");
 
+	//will only match if line has something other than spacing chars
+	std::regex emptyLineInsideFiremodeCheck("[^\\s]+");
+
 	//and this at the end of a firemode
 	std::regex firemodeCloseRegex("^\\s*</\\s*[F|f]ire[M|m]ode\\s*>[\r][\n]$");
 
@@ -209,14 +216,14 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 
 	//Store each individual line from the weapon between <Weapon> and </Weapon>
 	std::vector<string> weaponLines;
-	
+
 	//temp firemode object
 	Firemode curFiremode;
 
 	//move past the first line <Weapon ....
 	if ((findTokenResult = weaponCfgString.find_first_of(splitTokens, findTokenResult)) == string::npos)
 	{
-		cout << "Weapon name " + curWpnObj.getWeaponName() << " only has one line, skipping." << std::endl;
+		std::cout << "Weapon name " + curWpnObj.getWeaponName() << " only has one line, skipping." << std::endl;
 
 		return 0;
 	}
@@ -228,6 +235,8 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 		//store it as the 'opening' of the next line
 		lastTokenResult = findTokenResult;
 	}
+
+	LogHelper& logInstance = LogHelper::getInstance();
 
 	//Split up the remaining lines using a similar process, find the next /r/n, bump the found position past that /r/n, store it as the 'opening'
 	//of the line, and find the next /r/n as the end. Repeat while more to read.
@@ -251,31 +260,57 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 	//Need at least <firemode> </firemode>
 	if (weaponLines.size() < 2)
 	{
-		cout << "Weapon name " + curWpnObj.getWeaponName() << " doesnt contain any firemode tags, skipping." << std::endl;
+		std::cout << "Weapon name " + curWpnObj.getWeaponName() << " doesnt contain any firemode tags, skipping." << std::endl;
 
 		return 0;
 	}
 
-	//THe above will not match the closing </weapon... so even though we have matched it earlier before calling this function, check again for it.
-	string wpnCloseTag = weaponCfgString.substr(lastTokenResult);
+	//Check for closing tag
+	std::string wpnCloseTag = weaponLines[weaponLines.size() - 1];
+
+	bool isLastWeaponInList = false;
 
 	if (wpnCloseTag.find("</Weapon>") == string::npos)
 	{
-		//Missing a closeing /Weapon
-		cout << "Weapon name " + curWpnObj.getWeaponName() << " is missing a closing <\/Weapon> tag, skipping." << std::endl;
 
-		return 0;
+		//it is possible this is the last weapon in the list, and it won't have a \r\n following it.
+		std::string checkLastWeaponStr = weaponCfgString.substr(lastTokenResult);
+		if (checkLastWeaponStr.find("</Weapon>") == string::npos)
+		{
+
+			//Missing a closeing /Weapon
+			std::cout << "Weapon name " + curWpnObj.getWeaponName() << " is missing a closing <\/Weapon> tag, skipping." << std::endl;
+
+			return 0;
+		}
+		else
+			isLastWeaponInList = true;
 	}
-	
+
+	//If this is the last weapon in list, we will not have stored the closing weapon tag in the for loop above.
+	if (!isLastWeaponInList)
+	{
+		//remove the last /weapon line, we will generate that ourselves.
+		weaponLines.erase(weaponLines.begin() + weaponLines.size() - 1);
+	}
+
 	//Now make sure the first line in our collection is a <Firemode>
 	if (!std::regex_search(weaponLines[0], firemodeMatchRegex))
 	{
-		cout << "Weapon name " + curWpnObj.getWeaponName() << " did not have a firemode tag after the opening weapon tag, skipping." << std::endl;
+		std::cout << "Weapon name " + curWpnObj.getWeaponName() << " did not have a firemode tag after the opening weapon tag, skipping." << std::endl;
 		return 0;
 	}
 
 	//Flag for whether we have counted how many tabs to insert before attribute tags when we output this firemode
 	bool countedTabs = false;
+
+	if (logInstance.getLoggingState())
+	{
+		logInstance << "Dumping weapon entry lines before firemode parsing: " << curWpnObj.getWeaponName() << "\r\n\r\n";
+		for (auto strIt = weaponLines.begin(); strIt != weaponLines.end(); strIt++)
+			logInstance << *strIt;
+		logInstance << "\r\nEnd weapon entry lines for " << curWpnObj.getWeaponName() << "\r\n";
+	}
 
 	//we can iterate through the lines now
 	for (auto strIt = weaponLines.begin(); strIt != weaponLines.end(); strIt++)
@@ -342,7 +377,7 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 			}
 			else
 			{
-				cout << "\n no spacing detected in front of <Valid> tag, not going to put any spaces in front of attribute tags that are edited." << std::endl;
+				std::cout << "\n no spacing detected in front of <Valid> tag, not going to put any spaces in front of attribute tags that are edited." << std::endl;
 			}
 
 			curFiremode.breaksToInsertBeforeAttribute = tabCount;
@@ -363,8 +398,8 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 			//like something in a <HitData> tag, which we do not support (yet?). Alert the user and reset their Settings.xml
 			if (curFiremode.doesAttributeExist(atrMapIt->first))
 			{
-				cout << "The Attribute to edit " << atrMapIt->first << " was found more than once in a single firemode while parsing weapon name " << curWpnObj.getWeaponName() << std::endl;
-				cout << "An Attribute must be unique in a single firemode in order to edit it. Your Settings.xml will be reset and the program will exit, please don't add this Attribute again or you will see this same error message." << std::endl;
+				std::cout << "The Attribute to edit " << atrMapIt->first << " was found more than once in a single firemode while parsing weapon name " << curWpnObj.getWeaponName() << std::endl;
+				std::cout << "An Attribute must be unique in a single firemode in order to edit it. Your Settings.xml will be reset and the program will exit, please don't add this Attribute again or you will see this same error message." << std::endl;
 
 				throw AttributeNotUniqueException("Attribute " + atrMapIt->first + " was found more than once in a single Firemode in weapon " + curWpnObj.getWeaponName());
 			}
@@ -379,22 +414,29 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 					fAtrValue = StringHelpers::GetValueFromTaggedAttribute<float>(*strIt, atrMapIt->first, true);
 					foundAttributeToEdit = true;
 
+					if (logInstance.getLoggingState())
+					{
+						logInstance << "Found attribute in weapon " << curWpnObj.getWeaponName() << " which matches a target attribute." << "\r\n";
+						logInstance << "Input line: " << *strIt << "\r\n";
+						logInstance << "Attribute name: " << atrMapIt->first << ", attribute value: " << fAtrValue;
+					}
+
 					//Add to firemode float settings
 					curFiremode.firemodeFloatSettings.insert(std::make_pair(atrMapIt->first, fAtrValue));
 					break;
 				}
 				catch (MatchNotFoundException& ex)
 				{
-					cout << "Unable to extract value for attribute " + atrMapIt->first + " from weapon " + curWpnObj.getWeaponName() << std::endl;
-					cout << "Problem with this weapon in your config, it will be skipped." << std::endl;
+					std::cout << "Unable to extract value for attribute " + atrMapIt->first + " from weapon " + curWpnObj.getWeaponName() << std::endl;
+					std::cout << "Problem with this weapon in your config, it will be skipped." << std::endl;
 					return 0;
 				}
 				catch (exception& ex)
 				{
 					//bigger problem, TODO
-					cout << "Encountered a problem while parsing weapon " + curWpnObj.getWeaponName() << std::endl;
-					cout << "Info, if any: " + std::string(ex.what()) << std::endl;
-					cout << "Weapon will be skipped." << std::endl;
+					std::cout << "Encountered a problem while parsing weapon " + curWpnObj.getWeaponName() << std::endl;
+					std::cout << "Info, if any: " + std::string(ex.what()) << std::endl;
+					std::cout << "Weapon will be skipped." << std::endl;
 					return 0;
 				}
 			}
@@ -407,21 +449,29 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 					iAtrValue = StringHelpers::GetValueFromTaggedAttribute<int>(*strIt, atrMapIt->first, true);
 					foundAttributeToEdit = true;
 					//Add to firemode float settings
+
+					if (logInstance.getLoggingState())
+					{
+						logInstance << "Found attribute in weapon " << curWpnObj.getWeaponName() << " which matches a target attribute." << "\r\n";
+						logInstance << "Input line: " << *strIt << "\r\n";
+						logInstance << "Attribute name: " << atrMapIt->first << ", attribute value: " << iAtrValue;
+					}
+
 					curFiremode.firemodeIntSettings.insert(std::make_pair(atrMapIt->first, iAtrValue));
 					break;
 				}
 				catch (MatchNotFoundException& ex)
 				{
-					cout << "Unable to extract value for attribute " + atrMapIt->first + " from weapon " + curWpnObj.getWeaponName() << std::endl;
-					cout << "Problem with this weapon in your config, it will be skipped." << std::endl;
+					std::cout << "Unable to extract value for attribute " + atrMapIt->first + " from weapon " + curWpnObj.getWeaponName() << std::endl;
+					std::cout << "Problem with this weapon in your config, it will be skipped." << std::endl;
 					return 0;
 				}
 				catch (exception& ex)
 				{
 					//bigger problem, TODO
-					cout << "Encountered a problem while parsing weapon " + curWpnObj.getWeaponName() << std::endl;
-					cout << "Info, if any: " + std::string(ex.what()) << std::endl;
-					cout << "Weapon will be skipped." << std::endl;
+					std::cout << "Encountered a problem while parsing weapon " + curWpnObj.getWeaponName() << std::endl;
+					std::cout << "Info, if any: " + std::string(ex.what()) << std::endl;
+					std::cout << "Weapon will be skipped." << std::endl;
 					return 0;
 				}
 			}
@@ -434,12 +484,21 @@ int		WeaponConfig::SplitWeaponEntryIntoLinesAndParse(const std::string& weaponCf
 		}
 		else
 		{
-			//what the shit windows, either treat /r/n as one line at all times or don't
-			//notepad++ showed two spaces between every line in wpn config after output, notepad showed one. So strip off the \r\n and let stl decide what
-			//to put there via std::endl when outputting
-			std::string saveStr = strIt->substr(0, strIt->find(splitTokens));
+			if (std::regex_search(*strIt, emptyLineInsideFiremodeCheck))
+			{
+				curFiremode.addNonAttributeLine(*strIt);
+				if (logInstance.getLoggingState())
+				{
+					logInstance << "\r\nStored non-attribute line in non-attribute line data for firemode.\r\n";
+					logInstance << "\r\nLine: start|" + *strIt << "|end\r\n";
+				}
+			}
+			else if (logInstance.getLoggingState())
+			{
+				logInstance << "Skipping storing empty firemode line for weapon: " << curWpnObj.getWeaponName() << "\r\n";
+				logInstance << "Empty line: " << *strIt << "|end" << "\r\n";
+			}
 
-			curFiremode.addNonAttributeLine(saveStr);
 		}
 
 		if (!insideFiremode)

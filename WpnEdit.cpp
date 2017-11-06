@@ -35,7 +35,7 @@ Firemode curFm;
 //next and prev weapon keys
 uint32_t nextWeaponKey, prevWeaponKey, AAKeyCode;
 
-//TODO: Replace all couts with multiple << oeprators with printfs
+//TODO: Replace all std::couts with multiple << oeprators with printfs
 
 //What can I say, its late and my motivation is dying, just making some separate functions for handling wpn/firemode transitions instead of wrapping in class
 #pragma region lazychangeweaponorfiremodehandlers
@@ -60,12 +60,12 @@ void handleLowerWeaponOrFiremode()
 
 			curFiremodeIndex = 0;
 
-			cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
 		else
 		{
 			//Decrement firemode index
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << --curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << --curFiremodeIndex << std::endl;
 		}
 	}
 	else
@@ -82,7 +82,7 @@ void handleLowerWeaponOrFiremode()
 			//Naw just start at fm zero to have a faster way of navigating
 			curFiremodeIndex = 0;
 
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
 		else
 		{
@@ -90,7 +90,7 @@ void handleLowerWeaponOrFiremode()
 			//output current weapon and firemode index
 			const WeaponConfigEntry& curWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
 
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << --curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << --curFiremodeIndex << std::endl;
 		}
 	}
 }
@@ -117,12 +117,12 @@ void handleRaiseWeaponOrFiremode()
 			const WeaponConfigEntry& nCurWeapon = myWeap.getWeaponConfigAtIndex(curWeaponIndex);
 
 			//output current weapon and firemode.
-			cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
 		else
 		{
 			//Increment firemode index
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << ++curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << ++curFiremodeIndex << std::endl;
 		}
 	}
 	else
@@ -137,14 +137,14 @@ void handleRaiseWeaponOrFiremode()
 			//output current weapon and firemode index after incrementing curWeaponIndex
 			const WeaponConfigEntry& nCurWeapon = myWeap.getWeaponConfigAtIndex(++curWeaponIndex);
 
-			cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << nCurWeapon.getWeaponName().c_str() << ", FireMode: " << curFiremodeIndex << std::endl;
 		}
 		else
 		{
 			//Increment firemode index and output weapon name and firemodeindex
 			//output current weapon and firemode index
 
-			cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << ++curFiremodeIndex << std::endl;
+			std::cout << "Weapon: " << curWeapon.getWeaponName().c_str() << ", FireMode: " << ++curFiremodeIndex << std::endl;
 		}
 	}
 }
@@ -200,7 +200,7 @@ void handleRaiseWeaponOrFiremode()
 				//write out the new weapon config file, fire the AA loadweapons keybind
 				if (!newSetup.writeOutWeaponConfigFile(myWeap))
 				{
-					cout << "Failed to write out new weapon config file." << std::endl;
+					std::cout << "Failed to write out new weapon config file." << std::endl;
 
 					//Get focus in case they have a fullscreen game and only 1 monitor
 					GetFocus();
@@ -231,13 +231,13 @@ void handleRaiseWeaponOrFiremode()
 			{
 				std::string attributeName = keysToAtrIt->second->AttributeName();
 				//write out new firemode stats
-				cout << "Weapon " << curWeapon.getWeaponName() << ", Firemode: " << curFiremodeIndex << ", " << attributeName << ": " << std::fixed << curWeapon.getFiremodeByIndex(curFiremodeIndex).getFiremodeAttributeValue<float>(attributeName) << std::endl;
+				std::cout << "Weapon " << curWeapon.getWeaponName() << ", Firemode: " << curFiremodeIndex << ", " << attributeName << ": " << std::fixed << curWeapon.getFiremodeByIndex(curFiremodeIndex).getFiremodeAttributeValue<float>(attributeName) << std::endl;
 			}
 			else if (keysToAtrIt->second->AttributeType() == SETTING_VALUE_TYPE::IntValue)
 			{
 				std::string attributeName = keysToAtrIt->second->AttributeName();
 				//write out new firemode stats
-				cout << "Weapon " << curWeapon.getWeaponName() << ", Firemode: " << curFiremodeIndex << ", " << attributeName << ": " << curWeapon.getFiremodeByIndex(curFiremodeIndex).getFiremodeAttributeValue<int>(attributeName) << std::endl;
+				std::cout << "Weapon " << curWeapon.getWeaponName() << ", Firemode: " << curFiremodeIndex << ", " << attributeName << ": " << curWeapon.getFiremodeByIndex(curFiremodeIndex).getFiremodeAttributeValue<int>(attributeName) << std::endl;
 			}
 
 		}
@@ -286,7 +286,7 @@ bool findDupeInstance()
 	HANDLE ourProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ourProcID);
 	if (ourProcHandle == NULL || ourProcHandle == INVALID_HANDLE_VALUE)
 	{
-		cout << "Failed open a handle to our own process, make sure you run as admin." << std::endl;
+		std::cout << "Failed open a handle to our own process, make sure you run as admin." << std::endl;
 		return false;
 	}
 
@@ -298,7 +298,7 @@ bool findDupeInstance()
 
 	if (!EnumProcessModules(ourProcHandle, &ourModHandles, sizeof(ourModHandles), &oNeeded))
 	{
-		cout << "Failed open a handle to our own process, make sure you run as admin." << std::endl;
+		std::cout << "Failed open a handle to our own process, make sure you run as admin." << std::endl;
 		CloseHandle(ourProcHandle);
 		return false;
 	}
@@ -318,7 +318,7 @@ bool findDupeInstance()
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
 	if (!Process32First(hSnapShot, &procEntry))
 	{
-		cout << "Failed to snapshot running procs, make sure run as admin." << std::endl;
+		std::cout << "Failed to snapshot running procs, make sure run as admin." << std::endl;
 		CloseHandle(hSnapShot);
 		return false;
 	}
@@ -375,7 +375,7 @@ int main(int argc, char** argv)
 	if (findDupeInstance())
 	{
 		MessageBox(NULL, "You have an instance of wpnedit running. Close that first.", "Dupe instance", MB_OK);
-		cout << "You already have an instance of the wpn editor running. Close that one first. I'd close it but I'd rather not add error checks if people not running as admin and such." << std::endl;
+		std::cout << "You already have an instance of the wpn editor running. Close that one first. I'd close it but I'd rather not add error checks if people not running as admin and such." << std::endl;
 		exit(-1);
 	}
 
@@ -393,56 +393,53 @@ int main(int argc, char** argv)
 		exit(-1);
 	}
 
-	//weapon config parsing & storage
-	myWeap = WeaponConfig();
-
 	//try to read and parse weapon config file
 	ReadWeaponConfigResults rdWpnConfigRes = myWeap.readWeaponConfigFile(newSetup.getWeaponFilePath());
 
 	//check results
 	if (rdWpnConfigRes == ReadWeaponConfigResults::Success)
 	{
-		cout << "Succesfully parsed weapons from weapon config file." << std::endl;
+		std::cout << "Succesfully parsed weapons from weapon config file." << std::endl;
 	}
 	else if (rdWpnConfigRes == ReadWeaponConfigResults::AttributeNotUniqueToFiremode)
 	{
 		//They specified an attribute to edit in Settings.xml which appears more than once in a firemode, Settings.xml needs to be reset.
 
-		cout << "Resetting Settings.xml, if you are going to edit it again please make sure not to insert an attribute that appears more than once in a firemode." << std::endl;
+		std::cout << "Resetting Settings.xml, if you are going to edit it again please make sure not to insert an attribute that appears more than once in a firemode." << std::endl;
 		if (!newSetup.resetSettingsXmlFile())
 		{
-			cout << "We were unable to reset your Settings.xml file to default. Make sure you are running as admin, not running in a weird or protected path, and you have permission to edit files in the directory. If you have Settings.xml open in an editor, close it and try again. Copy over default Settings.xml from original archive just to be safe." << std::endl;
+			std::cout << "We were unable to reset your Settings.xml file to default. Make sure you are running as admin, not running in a weird or protected path, and you have permission to edit files in the directory. If you have Settings.xml open in an editor, close it and try again. Copy over default Settings.xml from original archive just to be safe." << std::endl;
 			return -1;
 		}
 		else
 		{
-			cout << "Exiting...";
+			std::cout << "Exiting...";
 			return -1;
 		}
 	}
 	else if (rdWpnConfigRes == ReadWeaponConfigResults::ConfigFilePathEmpty)
 	{
 		//They probably will have seen feedback already
-		cout << "Config file path was empty." << std::endl;
+		std::cout << "Config file path was empty." << std::endl;
 		if (!newSetup.resetSettingsXmlFile())
 		{
-			cout << "We were unable to reset your Settings.xml file to default. Make sure you are running as admin, not running in a weird or protected path, and you have permission to edit files in the directory. If you have Settings.xml open in an editor, close it and try again. Copy over default Settings.xml from original archive just to be safe." << std::endl;
+			std::cout << "We were unable to reset your Settings.xml file to default. Make sure you are running as admin, not running in a weird or protected path, and you have permission to edit files in the directory. If you have Settings.xml open in an editor, close it and try again. Copy over default Settings.xml from original archive just to be safe." << std::endl;
 			return -1;
 		}
 	}
 	else if (rdWpnConfigRes == ReadWeaponConfigResults::FailedToReadConfigFile)
 	{
-		cout << "Encountered an error when attempting to read Settings.xml, run as admin, make sure account has permission to edit stuff in directory, etc etc." << std::endl;
+		std::cout << "Encountered an error when attempting to read Settings.xml, run as admin, make sure account has permission to edit stuff in directory, etc etc." << std::endl;
 		return -1;
 	}
 	else if (rdWpnConfigRes == ReadWeaponConfigResults::ZeroWeaponsParsed)
 	{
-		cout << "No weapons were succesfully parsed from the target weapon config file. Redownload weapon config from AA loader and try again." << std::endl;
+		std::cout << "No weapons were succesfully parsed from the target weapon config file. Redownload weapon config from AA loader and try again." << std::endl;
 		return -1;
 	}
 	else
 	{
-		cout << "Something went terribly wrong, please remove any magnets from the side of your computer case and try again." << std::endl;
+		std::cout << "Something went terribly wrong, please remove any magnets from the side of your computer case and try again." << std::endl;
 		return -1;
 	}
 
@@ -451,13 +448,13 @@ int main(int argc, char** argv)
 
 	if (countOfAttributesToEdit <= 0)
 	{
-		cout << "You have not defined any attributes to edit. Resetting the Settings.xml file..." << std::endl;
+		std::cout << "You have not defined any attributes to edit. Resetting the Settings.xml file..." << std::endl;
 		if (!newSetup.resetSettingsXmlFile())
 		{
-			cout << "We were unable to reset your Settings.xml file to default. Make sure you are running as admin, not running in a weird or protected path, and you have permission to edit files in the directory. If you have Settings.xml open in an editor, close it and try again. Copy over default Settings.xml from original archive just to be safe." << std::endl;
+			std::cout << "We were unable to reset your Settings.xml file to default. Make sure you are running as admin, not running in a weird or protected path, and you have permission to edit files in the directory. If you have Settings.xml open in an editor, close it and try again. Copy over default Settings.xml from original archive just to be safe." << std::endl;
 			return -1;
 		}
-		cout << "Settings file reset, feel free to start program again." << std::endl;
+		std::cout << "Settings file reset, feel free to start program again." << std::endl;
 		return -1;
 	}
 
@@ -476,7 +473,7 @@ int main(int argc, char** argv)
 	//If newweaps already exists, perhaps the user would like a backup of it made
 	if (newSetup.backupExistingNewWeaps())
 	{
-		cout << "Backed up previous newweaps in case you had any changes in it you wanted to save elsewhere (back up newweaps if you find a setting you like! running this program overwrites newweaps!)." << std::endl;
+		std::cout << "Backed up previous newweaps in case you had any changes in it you wanted to save elsewhere (back up newweaps if you find a setting you like! running this program overwrites newweaps!)." << std::endl;
 	}
 
 
@@ -484,7 +481,7 @@ int main(int argc, char** argv)
 	//Oh yeh, write out newweaps once just to make sure we can write to it before we bother setting kbd hook
 	if (!newSetup.writeOutWeaponConfigFile(myWeap))
 	{
-		cout << "Failed writing to newweaps during startup test, please make sure run as admin, newweaps isnt locked for writing, folder isnt weird, etc etc" << std::endl;
+		std::cout << "Failed writing to newweaps during startup test, please make sure run as admin, newweaps isnt locked for writing, folder isnt weird, etc etc" << std::endl;
 		return -1;
 	}
 
@@ -492,7 +489,7 @@ int main(int argc, char** argv)
     DWORD dwThread;
 
 
-	cout << "AA In-Game Instant Weapon Editor - By ElGatoSupreme" << endl;
+	std::cout << "AA In-Game Instant Weapon Editor - By ElGatoSupreme" << endl;
 
 	hThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)setKeyBoardHook, (LPVOID)argv[0], NULL, &dwThread);
 
@@ -534,7 +531,7 @@ int main(int argc, char** argv)
 
 	cursor = myWeapons->head;
 
-	cout << "AA In-Game Instant Weapon Editor - By ElGatoSupreme" << endl;
+	std::cout << "AA In-Game Instant Weapon Editor - By ElGatoSupreme" << endl;
 
     hThread = CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)   setKeyBoardHook, (LPVOID) argv[0], NULL, &dwThread);
 

@@ -21,14 +21,14 @@ bool ConfigFileManager::writeOutWeaponConfigFile(const WeaponConfig & rWpnConfig
 	if (newWeaponFilePath.empty())
 		return false;
 
-	//write it back out to the wpn cfg file path
-	ofstream wpnConfigWriter(newWeaponFilePath, std::ofstream::out | std::ofstream::trunc);
+	//write it back out to the wpn cfg file path, open as binary so it doesnt get cute trying to handle linebreaks for us. This will only ever be run on windows anyways.
+	ofstream wpnConfigWriter(newWeaponFilePath, std::ios::binary| std::ofstream::out | std::ofstream::trunc);
 
 	int retryCount = 2;
 
 	while ((wpnConfigWriter.fail() || wpnConfigWriter.bad()) && --retryCount >= 0)
 	{
-		cout << "Couldn't open the output config file for writing, sleeping briefly then trying again." << std::endl;
+		std::cout << "Couldn't open the output config file for writing, sleeping briefly then trying again." << std::endl;
 
 		wpnConfigWriter.close();
 
@@ -43,11 +43,17 @@ bool ConfigFileManager::writeOutWeaponConfigFile(const WeaponConfig & rWpnConfig
 
 	std::vector<WeaponConfigEntry>::const_iterator wpnIt = rWpnConfig.configWeaponEntries.begin();
 
-	while (wpnIt != rWpnConfig.configWeaponEntries.end())
+	//go up through index-1 so we dont add an extra \r\n at end of newweaps, if they copy back to original weapons file and then edit again,
+	//it will add extra blanks at bottom.
+	while (wpnIt != rWpnConfig.configWeaponEntries.end() -1)
 	{
-		wpnConfigWriter << *wpnIt << std::endl;
+		wpnConfigWriter << *wpnIt << "\r\n";
 		wpnIt++;
 	}
+
+	//Output last (or only, if just 1 weapon) without \r\n
+	wpnConfigWriter << *wpnIt;
+
 
 	wpnConfigWriter.close();
 
@@ -120,7 +126,7 @@ void ConfigFileManager::initialize()
 
 	if (GetLastError())
 	{
-		cout << "Problem getting current directory. Run as admin next time and move to normal or shorter directory.\n";
+		std::cout << "Problem getting current directory. Run as admin next time and move to normal or shorter directory.\n";
 
 		exit(-1);
 	}
@@ -129,7 +135,7 @@ void ConfigFileManager::initialize()
 
 	if (curDirString.empty())
 	{
-		cout << "Problem getting current directory. Run as admin next time and move to normal or shorter directory.\n";
+		std::cout << "Problem getting current directory. Run as admin next time and move to normal or shorter directory.\n";
 
 		exit(-1);
 	}

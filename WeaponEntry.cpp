@@ -199,16 +199,16 @@ ostream& operator<<(ostream& os, const WeaponConfigEntry& wpnOut)
 	if (!wpnOut.getIsValid())
 		return os;
 
-	string weaponNameLine = "<Weapon " + wpnOut.getWeaponName() + ">";
+	string weaponNameLine = "<Weapon " + wpnOut.getWeaponName() + ">\r\n";
 
-	os << weaponNameLine << std::endl;
+	os << weaponNameLine;
 
 	for (int i = 0; i < wpnOut.getFiremodeCount(); i++)
 	{
 		os << wpnOut.getFiremodeByIndex(i);
 	}
 
-	os << "</Weapon>" << std::endl;
+	os << "</Weapon>" << "\r\n";
 
 	return os;
 }
@@ -221,7 +221,7 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 	//output all the strings we arent interested in editing, then output our editing string, then end firemode
 	for (int i = 0; i < fmOut.firemodeLeftOverStrings.size() - 1; i++)
 	{
-		os << fmOut.firemodeLeftOverStrings[i] << std::endl;
+		os << fmOut.firemodeLeftOverStrings[i];
 	}
 
 	string attributeLine = "";
@@ -239,7 +239,7 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 			os << breakToInsert;
 
 		//get attribute name and value, set it to use fixed floating point notation so we dont end up with 23e+009
-		os << '<' << fAtrIt->first << " " << std::fixed << fAtrIt->second << '>' << "</" << fAtrIt->first << '>' << std::endl;
+		os << '<' << fAtrIt->first << " " << std::fixed << fAtrIt->second << '>' << "</" << fAtrIt->first << '>' << "\r\n";
 		
 	}
 
@@ -255,12 +255,12 @@ ostream& operator<<(ostream& os, const Firemode& fmOut)
 			os << '\t';
 
 		//get attribute name
-		os << '<' << iAtrIt->first << " " << iAtrIt->second << '>' << "</" << iAtrIt->first << '>' << std::endl;
+		os << '<' << iAtrIt->first << " " << iAtrIt->second << '>' << "</" << iAtrIt->first << '>' << "\r\n";
 
 	}
 
 	//output last non attribute string which is closing firemode tab
-	os << fmOut.firemodeLeftOverStrings[fmOut.firemodeLeftOverStrings.size() - 1] << std::endl;
+	os << fmOut.firemodeLeftOverStrings[fmOut.firemodeLeftOverStrings.size() - 1];
 
 	return os;
 }

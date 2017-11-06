@@ -87,6 +87,10 @@ public:
 	//This is the KEY= part in the AA keybinds.cfg, default was what.... NUMPAD5 I believe, but they can change in settings file
 	const string&	 getKeybindPrefix() const;
 
+	const bool getIsLoggingEnabled() const { return loggingEnabled; }
+
+	const string getLogFileName() const { return "LogWeaponEditor_LastRun.txt"; }
+
 	void   setVKFilePath(const string&);
 
 	//bool	getSettingKeycodeFromVirtualKeycode(uint32_t inVirtualKey, SETTINGS_INDICES& outSettingKeycode);
@@ -131,5 +135,7 @@ private:
 	uint32_t nextWeaponKey;
 
 	uint32_t prevWeaponKey;
+
+	bool loggingEnabled;
 
 };

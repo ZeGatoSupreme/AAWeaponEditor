@@ -15,6 +15,7 @@
 #include "tinyxml2.h"
 #include "DefaultSettings.h"
 #include <memory>
+#include "LoggerMgr.h"
 
 using namespace tinyxml2;
 
@@ -30,8 +31,8 @@ const float SettingsMgr::floatEpsilon = 0.000000001;
 
 //default no args constructor
 SettingsMgr::SettingsMgr() :
-	curDirectory(""),
-	isReady(false)
+	curDirectory(""), isReady(false), keybindprefix(""),
+	vkkeycodespath(""), aaKeybindKey(0), nextWeaponKey(0), prevWeaponKey(0), loggingEnabled(false)
 {
 
 }
@@ -40,14 +41,14 @@ SettingsMgr::SettingsMgr() :
 //This constructor needs to be refactored, old code was a mess and this just tries to wallpaper it over.
 //constructor which takes a string path to the directory the exe was run from
 SettingsMgr::SettingsMgr(const string& directory) :
-	curDirectory(directory),
-	isReady(false)
+	curDirectory(directory), isReady(false), keybindprefix(""),
+	vkkeycodespath(""), aaKeybindKey(0), nextWeaponKey(0), prevWeaponKey(0), loggingEnabled(false)
 {
 
 	if (directory.empty())
 	{
 		setCurDir("");
-		cout << "Could not get directory path the program is executing in. Pls move to a normal and/or shorter folder, run as admin, try again. Using default settings.\n";
+		std::cout << "Could not get directory path the program is executing in. Pls move to a normal and/or shorter folder, run as admin, try again. Using default settings.\n";
 		return;
 	}
 
@@ -69,7 +70,7 @@ SettingsMgr::SettingsMgr(const string& directory) :
 		//Try to create the settings file if it is missing
 		if (!createSettingsFile())
 		{
-			cout << "Settings file not in directory and couldn't create settings file, run as admin, check folder, verify persmissions, then try again." << endl;
+			std::cout << "Settings file not in directory and couldn't create settings file, run as admin, check folder, verify persmissions, then try again." << endl;
 			exit(-1);
 		}
 		else
@@ -77,11 +78,11 @@ SettingsMgr::SettingsMgr(const string& directory) :
 			hSearchHandle = FindFirstFile(searchConfigFileInDir.c_str(), sResult); 
 			if (hSearchHandle == INVALID_HANDLE_VALUE)
 			{
-				cout << "Created Settings.xml however FindFirstFile could not locate it. Clearly something is off. Verify permissions, run as admin, yadda yadda, try again." << std::endl;
+				std::cout << "Created Settings.xml however FindFirstFile could not locate it. Clearly something is off. Verify permissions, run as admin, yadda yadda, try again." << std::endl;
 				exit(-1);
 			}
 
-			cout << "Settings.xml not found, created file with default settings." << std::endl;
+			std::cout << "Settings.xml not found, created file with default settings." << std::endl;
 
 		}
 
@@ -120,11 +121,11 @@ SettingsMgr::SettingsMgr(const string& directory) :
 
 		if (!createSettingsFile())
 		{
-			cout << "Couldn't create settings file, and Settings.xml not in directory. Run as admin and/or move to normal folder." << endl;
+			std::cout << "Couldn't create settings file, and Settings.xml not in directory. Run as admin and/or move to normal folder." << endl;
 			exit(-1);
 		}
 
-		cout << "Settings.xml not found, created file with default settings." << std::endl;
+		std::cout << "Settings.xml not found, created file with default settings." << std::endl;
 	}
 
 	bool readSettingsSuccess = false;
@@ -141,13 +142,13 @@ SettingsMgr::SettingsMgr(const string& directory) :
 
 		if (!(readSettingsSuccess = tryParseXMLSettings(xmlSettingsPath)))
 		{
-			cout << "Problem reading Settings.xml, using default values and creatings new Settings.xml\n";
+			std::cout << "Problem reading Settings.xml, using default values and creatings new Settings.xml\n";
 		}
 	}
 	catch (exception& ex)
 	{
 		readSettingsSuccess = false;
-		cout << "Problem reading Settings.xml, using default values and creatings new Settings.xml\n";
+		std::cout << "Problem reading Settings.xml, using default values and creatings new Settings.xml\n";
 	}
 
 	//Attempt to create and read default Settings.xml if needed
@@ -158,22 +159,22 @@ SettingsMgr::SettingsMgr(const string& directory) :
 		{
 			if (!createSettingsFile())
 			{
-				cout << "Could not create default Settings.xml file. Please make sure you don't have it open in notepad or anything, and that program is running as admin. Do some basic troubleshooting basically. Change dir if needed.";
+				std::cout << "Could not create default Settings.xml file. Please make sure you don't have it open in notepad or anything, and that program is running as admin. Do some basic troubleshooting basically. Change dir if needed.";
 				exit(-1);
 			}
 
 			//Created default settings.xml, try to read it
 			if (!tryParseXMLSettings(xmlSettingsPath))
 			{
-				cout << "Created default Settings.xml but could not read it. Please make sure program is run as admin, no programs are interfering with it, and that the path name is not some weird path.";
+				std::cout << "Created default Settings.xml but could not read it. Please make sure program is run as admin, no programs are interfering with it, and that the path name is not some weird path.";
 				exit(-1);
 			}
 
-			cout << "Settings.xml not found, created file with default settings." << std::endl;
+			std::cout << "Settings.xml not found, created file with default settings." << std::endl;
 		}
 		catch (exception& ex)
 		{
-			cout << "Could not create and read default Settings.xml. Please make sure program is run as admin, no other programs are interfering with it, and that you don't have a Settings.xml open in a text editor. Change dir if its a weird path and try again.";
+			std::cout << "Could not create and read default Settings.xml. Please make sure program is run as admin, no other programs are interfering with it, and that you don't have a Settings.xml open in a text editor. Change dir if its a weird path and try again.";
 			exit(-1);
 		}
 	}
@@ -241,6 +242,24 @@ bool		SettingsMgr::tryParseXMLSettings(const string& settingsReadData)
 	else if (pEleAsTag->QueryUnsignedAttribute("key", &prevKey) != tinyxml2::XMLError::XML_SUCCESS)
 		return false;
 
+	if ((pEle = pRootNode->FirstChildElement("Logging")) != nullptr && (pEleAsTag = pEle->ToElement()) != nullptr)
+	{
+		bool tmpLoglvl = false;
+		if (pEleAsTag->QueryBoolAttribute("enabled", &tmpLoglvl) == tinyxml2::XMLError::XML_SUCCESS)
+		{
+			loggingEnabled = tmpLoglvl;
+			if (loggingEnabled)
+			{
+				std::cout << "Logging enabled." << std::endl;
+				if (!LogHelper::getInstance().setLoggingPathAndOpen(getLogFileName()))
+				{
+					std::cout << "Failed creating log file." << std::endl;
+					loggingEnabled = false;
+				}
+			}
+		}
+	}
+
 /*	if ((pEle = doc.FirstChildElement("WeaponEditorSettings")) == nullptr)
 		return false;
 	else */if ((pEle = pRootNode->FirstChildElement("AttributesToEdit")) == nullptr)
@@ -307,8 +326,8 @@ bool		SettingsMgr::tryParseXMLSettings(const string& settingsReadData)
 		}
 		catch (InvalidXMLDataException& ex)
 		{
-			cout << "Could not parse setting attribute with name " << pEleAsTag->Attribute("name") << ", will not be able to edit this weapon attribute." << std::endl;
-			cout << "Additional details: " << std::string(ex.what()) << std::endl;
+			std::cout << "Could not parse setting attribute with name " << pEleAsTag->Attribute("name") << ", will not be able to edit this weapon attribute." << std::endl;
+			std::cout << "Additional details: " << std::string(ex.what()) << std::endl;
 		}
 
 		pEle = pEle->NextSibling();
@@ -317,7 +336,7 @@ bool		SettingsMgr::tryParseXMLSettings(const string& settingsReadData)
 
 	if (!attributeSettings.size())
 	{
-		cout << "Well, we made it to the end of tryParseXMLSettings, however no attributes were parsed. Your settings.xml either is screwed up, or it doesn't have any attributes. Therefore you fail! Using defaults." << std::endl;
+		std::cout << "Well, we made it to the end of tryParseXMLSettings, however no attributes were parsed. Your settings.xml either is screwed up, or it doesn't have any attributes. Therefore you fail! Using defaults." << std::endl;
 		return false;
 	}
 	else
@@ -328,7 +347,7 @@ bool		SettingsMgr::tryParseXMLSettings(const string& settingsReadData)
 		nextWeaponKey = nextKey;
 		prevWeaponKey = prevKey;
 
-		cout << "Parsed " << attributeSettings.size() << " attributes from Settings.xml." << std::endl;
+		std::cout << "Parsed " << attributeSettings.size() << " attributes from Settings.xml." << std::endl;
 		return true;
 	}
 
@@ -345,7 +364,7 @@ bool SettingsMgr::createSettingsFile()
 	newFileName.append(XML_SETTINGS_FILE_NAME);
 
 	ofstream fOut;
-	fOut.open(newFileName, ofstream::in | ofstream::out | ofstream::trunc | ofstream::binary);
+	fOut.open(newFileName, ofstream::out | ofstream::trunc | ofstream::binary);
 
 	if (fOut.bad() || fOut.fail())
 	{
@@ -398,7 +417,7 @@ void   SettingsMgr::setVKFilePath(const string& path)
 
 	if (strKeyCode.empty())
 	{
-		cout << "You done fucked up in your Settings.xml, enter a val for AA reserved key. Or delete your Settings.xml and let the program recreate them next run.\n" << endl;
+		std::cout << "You done fucked up in your Settings.xml, enter a val for AA reserved key. Or delete your Settings.xml and let the program recreate them next run.\n" << endl;
 		exit(-1);
 	}
 
@@ -407,13 +426,13 @@ void   SettingsMgr::setVKFilePath(const string& path)
 
 	if (reader.fail())
 	{
-		cout << "You are missing a needed AA config file in this folder.\n" << endl;
+		std::cout << "You are missing a needed AA config file in this folder.\n" << endl;
 		exit(-1);
 	}
 
 	if (reader.eof())
 	{
-		cout << "A vital AA config file is empty.\n" << endl;
+		std::cout << "A vital AA config file is empty.\n" << endl;
 		reader.close();
 		exit(-1);
 	}
@@ -443,7 +462,7 @@ void   SettingsMgr::setVKFilePath(const string& path)
 
 	if (!foundKeyNamesLine)
 	{
-		cout << "Missing [KeyNames] section.\n" << endl;
+		std::cout << "Missing [KeyNames] section.\n" << endl;
 		reader.close();
 		exit(-1);
 	}
@@ -470,7 +489,7 @@ void   SettingsMgr::setVKFilePath(const string& path)
 
 	if (!foundKeyName)
 	{
-		cout << "[KeyNames] doesn't have a name for your key code.\n" << endl;
+		std::cout << "[KeyNames] doesn't have a name for your key code.\n" << endl;
 		exit(-1);
 	}
 
@@ -478,7 +497,7 @@ void   SettingsMgr::setVKFilePath(const string& path)
 
 	if (keyNameIndex == string::npos)
 	{
-		cout << "Your AA cfg file is messed up, let loader redownload.\n" << endl;
+		std::cout << "Your AA cfg file is messed up, let loader redownload.\n" << endl;
 		exit(-1);
 	}
 
@@ -487,7 +506,7 @@ void   SettingsMgr::setVKFilePath(const string& path)
 	keyname = currentLine.substr(keyNameIndex);
 	if (keyname.empty())
 	{
-		cout << "Your AA cfg file is messed up, let loader redownload.\n" << endl;
+		std::cout << "Your AA cfg file is messed up, let loader redownload.\n" << endl;
 		exit(-1);
 	}
 
