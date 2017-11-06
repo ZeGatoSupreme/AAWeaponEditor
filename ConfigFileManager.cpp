@@ -66,9 +66,9 @@ bool ConfigFileManager::backupExistingNewWeaps()
 	if (newWeaponFilePath.empty())
 		return false;
 
-	ifstream oldNewWeapsIn(newWeaponFilePath);
+	ifstream oldNewWeapsIn(newWeaponFilePath, std::ios::binary | std::ios::ate);
 
-	if (oldNewWeapsIn.fail() || oldNewWeapsIn.bad() || oldNewWeapsIn.eof())
+	if (oldNewWeapsIn.fail() || oldNewWeapsIn.bad())
 	{
 		oldNewWeapsIn.close();
 		return false;
@@ -79,7 +79,7 @@ bool ConfigFileManager::backupExistingNewWeaps()
 	bakNewWeaponsFilePath.append(".bak");
 
 	// write it back out to the keybind cfg file
-	ofstream wpnConfigWriter(bakNewWeaponsFilePath, std::ofstream::out | std::ofstream::trunc);
+	ofstream wpnConfigWriter(bakNewWeaponsFilePath, std::ofstream::out | std::ofstream::trunc | std::ios::binary);
 
 	if (wpnConfigWriter.fail() || wpnConfigWriter.bad())
 	{
@@ -88,25 +88,30 @@ bool ConfigFileManager::backupExistingNewWeaps()
 		return false;
 	}
 
-	std::string xferLine = "";
+	streamsize oldSize = oldNewWeapsIn.tellg();
 
-	bool didError = false;
+	//reset stream buffer position
+	oldNewWeapsIn.seekg(0, std::ios::beg);
 
+	std::vector<char> backupVec(oldSize);
 
-	while (!oldNewWeapsIn.eof() && getline(oldNewWeapsIn, xferLine))
+	if (!oldNewWeapsIn.read(backupVec.data(), oldSize))
 	{
-		wpnConfigWriter << xferLine << std::endl;
-		if (wpnConfigWriter.fail() || wpnConfigWriter.bad())
-		{
-			didError = true;
-			break;
-		}
+		oldNewWeapsIn.close();
+		return false;
+	}
+
+	oldNewWeapsIn.close();
+
+	if (!wpnConfigWriter.write(backupVec.data(), oldSize))
+	{
+		wpnConfigWriter.close();
+		return false;
 	}
 	
-	oldNewWeapsIn.close();
 	wpnConfigWriter.close();
 
-	return !didError;
+	return true;
 
 }
 
