@@ -372,12 +372,13 @@ bool findDupeInstance()
 int main(int argc, char** argv)
 {
 
-	if (findDupeInstance())
-	{
-		MessageBox(NULL, "You have an instance of wpnedit running. Close that first.", "Dupe instance", MB_OK);
-		std::cout << "You already have an instance of the wpn editor running. Close that one first. I'd close it but I'd rather not add error checks if people not running as admin and such." << std::endl;
-		exit(-1);
-	}
+	//disable this until w10 gets tested
+	//if (findDupeInstance())
+	//{
+	//	MessageBox(NULL, "You have an instance of wpnedit running. Close that first.", "Dupe instance", MB_OK);
+	//	std::cout << "You already have an instance of the wpn editor running. Close that one first. I'd close it but I'd rather not add error checks if people not running as admin and such." << std::endl;
+	//	exit(-1);
+	//}
 
 	//Locate config files and such, older code but does the job
 	newSetup.initialize();
